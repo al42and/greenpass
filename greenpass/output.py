@@ -17,6 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
+import base64
 from termcolor import colored
 
 from greenpass.data import *
@@ -77,6 +78,15 @@ class NoneOutput(object):
         pass
 
     def rawdump(self, data):
+        pass
+
+    def printwait(self):
+        pass
+
+    def printkeylist(self, data):
+        pass
+
+    def printkid(self, s):
         pass
 
 # Output Manager, manages output and dumps to files and stdout
@@ -188,3 +198,18 @@ class OutputManager(NoneOutput):
     def rawdump(self, data):
         print(data)
 
+    def printwait(self):
+        print("Working...")
+
+    def printkeylist(self, keylist):
+        print(self.colored("{:3s} ".format("ID"), "green"), end = '')
+        print(self.colored("{:10s} ".format("KID"), "yellow"), end = '')
+        for k in keylist:
+            print(self.colored("{:3d} ".format(k[1]), "green"), end='')
+            print(self.colored("{:10s} ".format(k[0]), "yellow"), end='')
+            certmap = map(lambda x: "{}:{}".format(x[0].decode(), x[1].decode()), k[2])
+            certdata = list(certmap)
+            print(' '.join(certdata))
+
+    def printkid(self, s):
+        print(base64.b64encode(s).decode())

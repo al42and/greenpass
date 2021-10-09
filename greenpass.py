@@ -52,6 +52,10 @@ if __name__=="__main__":
     command.add_argument("--txt",
                          help="read qrcode content from file")
 
+    command.add_argument("--list-keys",
+                         action="store_true",
+                         help="List the available keys")
+
     # Optional Parameters
     parser.add_argument("--cachedir",
                         default=DEFAULT_CACHE_DIR,
@@ -60,6 +64,10 @@ if __name__=="__main__":
     parser.add_argument("--raw",
                         action="store_true",
                         help="print raw data of certificate in json format")
+
+    parser.add_argument("--kid",
+                        action="store_true",
+                        help="print key id data of certificate")
 
     parser.add_argument("--no-color",
                         action="store_true",
@@ -98,12 +106,17 @@ if __name__=="__main__":
         out.dump_settings(sm)
         sys.exit(1)
 
-    data = InputTransformer(path, filetype).get_data()
-    gpp = GreenPassParser(data)
+    if not args.list_keys:
+        data = InputTransformer(path, filetype).get_data()
+        gpp = GreenPassParser(data)
 
     out = OutputManager(colored)
     if args.raw:
         gpp.dump(out)
+        sys.exit(1)
+
+    if args.kid:
+        out.printkid(gpp.get_kid())
         sys.exit(1)
 
     logic = LogicManager(cachedir)
@@ -111,6 +124,13 @@ if __name__=="__main__":
         cup = CachedCertificateUpdater(cachedir)
     else:
         cup = CertificateUpdater()
+
+    if args.list_keys:
+        out.printwait()
+        keylist = cup.get_key_list()
+        out.printkeylist(keylist)
+        sys.exit(1)
+
     res = logic.verify_certificate(out, gpp, sm, cup)
 
     # Unix return code is inverted

@@ -55,6 +55,36 @@ class CertificateUpdater(object):
             i += 1
         return (_type, -1)
 
+    def get_kid_list(self, _type="dgc"):
+        if _type != "dgc":
+            raise Exception("Not implemented type: {}".format(_type))
+
+        r = requests.get("{}/signercertificate/status".format(BASE_URL_DGC))
+        if r.status_code != 200:
+            print("[-] Error from API")
+            return None
+
+        j = json.loads(r.text)
+        return j
+
+    def get_key_list(self, _type="dgc"):
+        out = []
+
+        if _type != "dgc":
+            raise Exception("Not implemented type: {}".format(_type))
+
+        kids = self.get_kid_list(_type)
+
+        for kidx in range(len(kids)):
+            kid = kids[kidx]
+
+            cert = self.get_key_dgc(kidx)
+            x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
+            subject = x509.get_subject()
+            out.append((kid, kidx, subject.get_components()))
+
+        return out
+
     # Dispatch to correct Key IDX retrieve function
     def get_kid_idx(self, kid):
         k = self._get_kid_idx(kid, "nhs")
