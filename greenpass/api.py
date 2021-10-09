@@ -90,8 +90,11 @@ class CertificateUpdater(object):
         r = requests.get("{}/pubkeys/keys.json".format(BASE_URL_NHS))
         for x in json.loads(r.text):
             targetkid = hexlify(base64.b64decode(x["kid"]))
-            if targetkid == hexkid:
+            print("DEBUG: Kid: {} TARGET: {}".format(x["kid"], targetkid))
+            if targetkid == idx:
                 return base64.b64decode(x["publicKey"])
+
+        return None
 
     # Retrieve key from remote repository
     def get_key(self, kid):
